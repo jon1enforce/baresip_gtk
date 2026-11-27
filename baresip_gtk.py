@@ -107,6 +107,12 @@ button.warn-btn:checked {
     background-color: #9e6711;
     border-color: #f5a623;
 }
+button.ringing-btn {
+    background-color: #7e22ce;
+    border-color: #d8b4fe;
+    color: #ffffff;
+}
+
 treeview {
     background-color: #0c1a14;
     color: #ffffff;
@@ -141,6 +147,7 @@ frame > label {
     font-weight: bold;
     font-size: 15px;
 }
+
 """
 class BaresipTouchApp(Gtk.Window):
     def __init__(self):
@@ -157,6 +164,8 @@ class BaresipTouchApp(Gtk.Window):
         self.is_held = False
         self.is_dnd = False
         self.active_calls = {}
+        self.ring_timer = None
+        self.ring_state = False
 
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self.add(root)
@@ -199,6 +208,32 @@ class BaresipTouchApp(Gtk.Window):
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
         )
+    def start_ringing_visuals(self):
+        self.notebook.set_current_page(0)
+        self.present()
+        if self.ring_timer is None:
+            self.ring_timer = GLib.timeout_add(450, self._blink_ans_btn)
+
+    def _blink_ans_btn(self):
+        ctx = self.ans_btn.get_style_context()
+        if self.ring_state:
+            ctx.remove_class("ringing-btn")
+            ctx.add_class("call-btn")
+        else:
+            ctx.remove_class("call-btn")
+            ctx.add_class("ringing-btn")
+        self.ring_state = not self.ring_state
+        return True  # Timer läuft weiter
+
+    def stop_ringing_visuals(self):
+        if self.ring_timer is not None:
+            GLib.source_remove(self.ring_timer)
+            self.ring_timer = None
+        self.ring_state = False
+        ctx = self.ans_btn.get_style_context()
+        ctx.remove_class("ringing-btn")
+        ctx.add_class("call-btn")
+        
     def build_phone_tab(self):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
         box.set_border_width(12)
@@ -285,7 +320,7 @@ class BaresipTouchApp(Gtk.Window):
         self.dnd_btn.get_style_context().add_class("warn-btn")
         self.dnd_btn.connect("toggled", self.on_toggle_dnd)
         cgrid.attach(self.dnd_btn, 1, 1, 1, 1)
-
+        
         ctrl_frame.add(cgrid)
         box.pack_start(ctrl_frame, False, False, 0)
         return box
@@ -894,29 +929,32 @@ class BaresipTouchApp(Gtk.Window):
         etype = pkt.get("type", "")
         peer = pkt.get("peeruri", "")
         cid = str(pkt.get("id", "1"))
-
+        
         if etype == "CALL_INCOMING":
             self.active_calls[cid] = {"peer": peer, "state": "Klingelt", "dir": "Eingehend"}
             GLib.idle_add(self.refresh_calls_view)
             self.add_history("Eingehend", peer)
             self.set_status(f"Eingehender Anruf: {peer}")
-            GLib.idle_add(self.present)
+            GLib.idle_add(self.start_ringing_visuals)
 
         elif etype == "CALL_OUTGOING":
             self.active_calls[cid] = {"peer": peer, "state": "Wählt...", "dir": "Ausgehend"}
             GLib.idle_add(self.refresh_calls_view)
 
         elif etype == "CALL_ESTABLISHED":
+            GLib.idle_add(self.stop_ringing_visuals)
             self.active_calls[cid] = {"peer": peer, "state": "Verbunden", "dir": "Aktiv"}
             GLib.idle_add(self.refresh_calls_view)
             self.set_status(f"Verbunden: {peer}")
 
         elif etype == "CALL_CLOSED":
+            GLib.idle_add(self.stop_ringing_visuals)
             self.active_calls.pop(cid, None)
             GLib.idle_add(self.refresh_calls_view)
             GLib.idle_add(self.mute_btn.set_active, False)
             GLib.idle_add(self.hold_btn.set_active, False)
             self.set_status("Anruf beendet – Bereit")
+
 
         elif etype == "REGISTER_OK":
             self.set_status(f"Registriert: {pkt.get('param', '')}")
