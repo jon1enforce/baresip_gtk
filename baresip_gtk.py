@@ -21,7 +21,7 @@ CONTACTS_FILE = os.path.join(BARESIP_DIR, "contacts")
 CSS_STYLE = b"""
 * {
     font-family: "Roboto", Sans;
-    font-size: 18px;
+    font-size: 14px;
 }
 window, notebook, notebook > stack, box, grid, scrolledwindow, viewport {
     background-color: #08120e;
@@ -30,19 +30,19 @@ window, notebook, notebook > stack, box, grid, scrolledwindow, viewport {
 notebook > header {
     background-color: #050c09;
     border-bottom: 2px solid #1e523a;
-    padding: 6px;
+    padding: 4px;
 }
 notebook > header > tabs > tab {
     background-color: #0e241b;
     color: #c5ded2;
-    min-height: 62px;
-    min-width: 118px;
-    padding: 12px 14px;
-    margin: 4px;
+    min-height: 36px;
+    min-width: 72px;
+    padding: 6px 10px;
+    margin: 2px;
     border: 2px solid #1c4a35;
-    border-radius: 10px;
+    border-radius: 8px;
     font-weight: bold;
-    font-size: 17px;
+    font-size: 13px;
 }
 notebook > header > tabs > tab:checked {
     background-color: #1b6944;
@@ -54,10 +54,10 @@ entry, textview, textview text {
     background-color: #0e1f18;
     color: #ffffff;
     border: 2px solid #266347;
-    border-radius: 10px;
-    min-height: 56px;
-    padding: 10px 14px;
-    font-size: 20px;
+    border-radius: 8px;
+    min-height: 38px;
+    padding: 6px 10px;
+    font-size: 15px;
     caret-color: #4ade80;
 }
 button {
@@ -65,11 +65,11 @@ button {
     background-color: #133b29;
     color: #ffffff;
     border: 2px solid #276e4e;
-    border-radius: 12px;
-    min-height: 64px;
-    padding: 12px 16px;
+    border-radius: 10px;
+    min-height: 38px;
+    padding: 6px 10px;
     font-weight: bold;
-    font-size: 19px;
+    font-size: 14px;
 }
 button:hover {
     background-color: #1a5239;
@@ -81,15 +81,15 @@ button:active, button:checked {
     border-color: #52e09e;
 }
 button.dialpad-btn {
-    font-size: 30px;
-    min-height: 86px;
+    font-size: 22px;
+    min-height: 48px;
     background-color: #0f2e20;
 }
 button.call-btn {
     background-color: #167a47;
     border-color: #2ecc71;
-    min-height: 74px;
-    font-size: 21px;
+    min-height: 44px;
+    font-size: 15px;
 }
 button.call-btn:hover {
     background-color: #1d9658;
@@ -97,8 +97,8 @@ button.call-btn:hover {
 button.hangup-btn {
     background-color: #871f1f;
     border-color: #d94141;
-    min-height: 74px;
-    font-size: 21px;
+    min-height: 44px;
+    font-size: 15px;
 }
 button.hangup-btn:hover {
     background-color: #a82828;
@@ -110,7 +110,7 @@ button.warn-btn:checked {
 treeview {
     background-color: #0c1a14;
     color: #ffffff;
-    font-size: 19px;
+    font-size: 15px;
 }
 treeview:selected {
     background-color: #1e6b46;
@@ -120,33 +120,34 @@ treeview header button {
     background-color: #08140f;
     color: #a7d1bd;
     border: 1px solid #1e523a;
-    min-height: 48px;
+    min-height: 32px;
 }
 frame > border {
     border: 2px solid #1f543c;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 frame > label {
     color: #6ee7b7;
     font-weight: bold;
-    font-size: 18px;
-    padding: 0 8px;
+    font-size: 14px;
+    padding: 0 6px;
 }
 #status-banner {
     background-color: #113324;
     border: 2px solid #2b7a56;
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 8px 12px;
     color: #ffffff;
     font-weight: bold;
-    font-size: 21px;
+    font-size: 15px;
 }
 """
 class BaresipTouchApp(Gtk.Window):
     def __init__(self):
         super().__init__(title="Baresip Touch Softphone")
-        self.set_default_size(1080, 1920)
-        self.set_border_width(14)
+        self.set_decorated(False)
+        self.maximize()
+        self.set_border_width(8)
 
         self.apply_css()
 
@@ -157,7 +158,7 @@ class BaresipTouchApp(Gtk.Window):
         self.is_dnd = False
         self.active_calls = {}
 
-        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         self.add(root)
 
         self.status_label = Gtk.Label(label="Verbinde mit baresip...")
@@ -169,14 +170,20 @@ class BaresipTouchApp(Gtk.Window):
         self.notebook.set_scrollable(True)
         root.pack_start(self.notebook, True, True, 0)
 
-        self.notebook.append_page(self.build_phone_tab(), Gtk.Label(label="Telefon"))
-        self.notebook.append_page(self.build_lines_tab(), Gtk.Label(label="Leitungen"))
-        self.notebook.append_page(self.build_contacts_tab(), Gtk.Label(label="Kontakte"))
-        self.notebook.append_page(self.build_history_tab(), Gtk.Label(label="Verlauf"))
-        self.notebook.append_page(self.build_chat_tab(), Gtk.Label(label="Chat"))
-        self.notebook.append_page(self.build_accounts_tab(), Gtk.Label(label="Accounts"))
-        self.notebook.append_page(self.build_av_tab(), Gtk.Label(label="Audio/Video"))
-        self.notebook.append_page(self.build_debug_tab(), Gtk.Label(label="Debug"))
+        def wrap_scroll(widget):
+            sw = Gtk.ScrolledWindow()
+            sw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+            sw.add(widget)
+            return sw
+
+        self.notebook.append_page(wrap_scroll(self.build_phone_tab()), Gtk.Label(label="Telefon"))
+        self.notebook.append_page(wrap_scroll(self.build_lines_tab()), Gtk.Label(label="Leitungen"))
+        self.notebook.append_page(wrap_scroll(self.build_contacts_tab()), Gtk.Label(label="Kontakte"))
+        self.notebook.append_page(wrap_scroll(self.build_history_tab()), Gtk.Label(label="Verlauf"))
+        self.notebook.append_page(wrap_scroll(self.build_chat_tab()), Gtk.Label(label="Chat"))
+        self.notebook.append_page(wrap_scroll(self.build_accounts_tab()), Gtk.Label(label="Accounts"))
+        self.notebook.append_page(wrap_scroll(self.build_av_tab()), Gtk.Label(label="Audio/Video"))
+        self.notebook.append_page(wrap_scroll(self.build_debug_tab()), Gtk.Label(label="Debug"))
 
         self.connect("destroy", self.on_quit)
         self.load_contacts_from_file()
