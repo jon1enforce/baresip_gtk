@@ -285,10 +285,11 @@ class BaresipTouchApp(Gtk.Window):
         vid_dial_btn.connect("clicked", lambda _: self.on_dial(video=True))
         call_grid.attach(vid_dial_btn, 1, 0, 1, 1)
 
-        ans_btn = Gtk.Button(label="Annehmen")
-        ans_btn.get_style_context().add_class("call-btn")
-        ans_btn.connect("clicked", lambda _: self.send_cmd("accept"))
-        call_grid.attach(ans_btn, 0, 1, 1, 1)
+        self.ans_btn = Gtk.Button(label="Annehmen")
+        self.ans_btn.get_style_context().add_class("call-btn")
+        self.ans_btn.connect("clicked", lambda _: (self.stop_ringing_visuals(), self.send_cmd("accept")))
+        call_grid.attach(self.ans_btn, 0, 1, 1, 1)
+
 
         end_btn = Gtk.Button(label="Auflegen")
         end_btn.get_style_context().add_class("hangup-btn")
