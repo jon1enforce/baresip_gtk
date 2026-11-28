@@ -933,10 +933,11 @@ class BaresipTouchApp(Gtk.Window):
         
         if etype == "CALL_INCOMING":
             self.active_calls[cid] = {"peer": peer, "state": "Klingelt", "dir": "Eingehend"}
+            self.set_status(f"EINGEHENDER ANRUF: {peer}")
             GLib.idle_add(self.refresh_calls_view)
             self.add_history("Eingehend", peer)
-            self.set_status(f"Eingehender Anruf: {peer}")
             GLib.idle_add(self.start_ringing_visuals)
+
 
         elif etype == "CALL_OUTGOING":
             self.active_calls[cid] = {"peer": peer, "state": "Wählt...", "dir": "Ausgehend"}
